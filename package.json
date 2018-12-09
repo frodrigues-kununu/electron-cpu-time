@@ -1,0 +1,35 @@
+{
+  "name": "electron-cpu-time",
+  "productName": "Electron CPU Time",
+  "version": "1.0.0",
+  "description": "Just a small project to test the capabilities of Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.electon-cpu-time",
+    "mac": {
+      "category": "performance"
+    }
+  },
+  "repository": "https://github.com/frodrigues-kununu/electron-cpu-time",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "Fábio Rodrigues",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^3.0.7",
+    "electron-builder": "^20.38.2"
+  },
+  "dependencies": {
+    "highcharts": "^6.2.0"
+  }
+}
