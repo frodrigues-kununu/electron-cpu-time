@@ -1,25 +1,19 @@
 const Highcharts = require('highcharts');
 const os = require('os');
 
-let categories = [];
-let previousData = [];
+const categories = [];
+const previousData = [];
 
 os.cpus().forEach((core, index) => {
-  previousData.push({
-    irq: core.times.irq,
-    nice: core.times.nice,
-    sys: core.times.sys,
-    user: core.times.user,
-    idle: core.times.idle,
-  })
+  Object.keys(core.times).forEach((val, cpuMode) => {
+    previousData.push({[cpuMode]: val});
+  });
 });
-
 
 function generateData() {
 
   const cpuCores = os.cpus();
-
-  let cpuSeries = [{
+  const cpuSeries = [{
     name: 'irq',
     data: []
   }, {
@@ -39,23 +33,17 @@ function generateData() {
   cpuCores.forEach((core, index) => {
     categories.push(`core ${index}`);
 
-    const total = core.times.irq - previousData[index].irq +
-      core.times.nice - previousData[index].nice +
-      core.times.sys - previousData[index].sys +
-      core.times.user - previousData[index].user +
-      core.times.idle - previousData[index].idle;
+      const total = Object.keys(core.times).reduce((acc, cpuMode) => {
+       return acc += core.times[cpuMode] - previousData[index][cpuMode];
+      }, 0);
 
-    cpuSeries[0].data.push(Math.round((core.times.irq - previousData[index].irq) / total  * 100));
-    cpuSeries[1].data.push(Math.round((core.times.nice - previousData[index].nice) / total * 100));
-    cpuSeries[2].data.push(Math.round((core.times.sys - previousData[index].sys) / total * 100));
-    cpuSeries[3].data.push(Math.round((core.times.user - previousData[index].user) / total * 100));
-    cpuSeries[4].data.push(Math.round((core.times.idle - previousData[index].idle) / total * 100));
+    cpuSeries.forEach((val, idx) => {
+      const currentCpuMode = cpuSeries[idx].name;
+      const nextCpuModeValue = (core.times[currentCpuMode] - previousData[index][currentCpuMode]) / total * 100;
 
-    previousData[index].irq = core.times.irq;
-    previousData[index].nice = core.times.nice;
-    previousData[index].sys = core.times.sys;
-    previousData[index].user = core.times.user;
-    previousData[index].idle = core.times.idle;
+      val.data.push(Math.round(nextCpuModeValue));
+      previousData[index][currentCpuMode] = core.times[currentCpuMode];
+    });
   });
 
   return cpuSeries;
@@ -129,14 +117,14 @@ Highcharts.chart('chartContainer', {
   },
   tooltip: {
     headerFormat: '<b>{point.x}</b><br/>',
-    pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}'
+    pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}',
   },
   plotOptions: {
     column: {
       stacking: 'normal',
       dataLabels: {
         enabled: true,
-        color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
+        color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
       }
     },
   },
